@@ -76,6 +76,12 @@ public sealed partial class TTTPlayer
 
 		Status = PlayerStatus.Dead;
 		Health = 0;
+		Role.DiedThisRound = true;
+
+		// Score: credit the attacker with a kill (player kills only — world
+		// damage and self-damage don't count toward MVP).
+		if ( attacker.IsValid() && attacker != this )
+			attacker.Role.Kills++;
 
 		// Drop a corpse at the death position so detectives have something to ID.
 		Corpse.SpawnFor( this, dmg );

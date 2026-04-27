@@ -56,7 +56,7 @@ public sealed partial class TTTGameMode
 		RoleVisibility.RevealToClients( _alivePlayers );
 
 		// Snapshot karma so damage scaling uses a stable base for the round, and
-		// reset per-round role state (clean flag, equipment wears off, etc).
+		// reset per-round role state (clean flag, equipment wears off, score reset).
 		foreach ( var p in _alivePlayers )
 		{
 			p.Role.BaseKarma = p.Role.Karma;
@@ -64,6 +64,8 @@ public sealed partial class TTTGameMode
 			p.Role.HasBodyArmor = false;
 			p.Role.HasDisguiser = false;
 			p.Role.IsDisguised = false;
+			p.Role.Kills = 0;
+			p.Role.DiedThisRound = false;
 		}
 
 		RoundNumber++;

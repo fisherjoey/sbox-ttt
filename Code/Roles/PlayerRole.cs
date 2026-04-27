@@ -45,5 +45,11 @@ public sealed class PlayerRole : Component
 
 	[Sync] public bool IsDisguised { get; set; }
 
+	/// <summary>Kills this round. Incremented in TTTPlayer.Kill on the attacker side; resets at round start.</summary>
+	[Sync] public int Kills { get; set; }
+
+	/// <summary>True if this player has died this round. Set in TTTPlayer.Kill; resets at round start.</summary>
+	[Sync] public bool DiedThisRound { get; set; }
+
 	public RoleTeam Team => Type.Team();
 }
