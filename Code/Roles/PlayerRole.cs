@@ -52,4 +52,7 @@ public sealed class PlayerRole : Component
 	[Sync] public bool DiedThisRound { get; set; }
 
 	public RoleTeam Team => Type.Team();
+
+	/// <summary>Traitors and Detectives have a shop; Innocents do not.</summary>
+	public bool CanUseShop() => Type == RoleType.Traitor || Type == RoleType.Detective;
 }

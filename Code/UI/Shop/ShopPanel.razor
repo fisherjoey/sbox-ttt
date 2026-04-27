@@ -1,0 +1,82 @@
+@using Sandbox;
+@using Sandbox.UI;
+@using System.Linq;
+@inherits PanelComponent
+@namespace TTT.UI
+
+@{
+	var local = LocalPlayer;
+	var canShop = local.IsValid() && local.IsAlive && local.Role.CanUseShop();
+}
+
+@if ( IsOpen && canShop )
+{
+	<root>
+		<div class="window">
+			<div class="header">
+				<h1>Shop</h1>
+				<div class="credits">@local.Role.Credits credits</div>
+			</div>
+
+			<div class="grid">
+				@foreach ( var item in AvailableItems( local ) )
+				{
+					var canBuy = item.CanPurchase( local );
+					<div class="item @(canBuy ? "" : "disabled")" @onclick=@(() => OnBuy( item ))>
+						<div class="icon">@item.IconName</div>
+						<div class="title">@item.Title</div>
+						<div class="cost">@item.Cost</div>
+					</div>
+				}
+			</div>
+
+			<div class="footer">Press C to close</div>
+		</div>
+	</root>
+}
+
+@code
+{
+	bool IsOpen { get; set; }
+
+	protected override void OnUpdate()
+	{
+		base.OnUpdate();
+		if ( Input.Pressed( "shop" ) ) IsOpen = !IsOpen;
+		if ( Input.EscapePressed && IsOpen ) IsOpen = false;
+	}
+
+	static TTTPlayer LocalPlayer
+	{
+		get
+		{
+			if ( Connection.Local is null ) return null;
+			foreach ( var p in Game.ActiveScene.GetAllComponents<TTTPlayer>() )
+				if ( p.Network.Owner == Connection.Local ) return p;
+			return null;
+		}
+	}
+
+	static System.Collections.Generic.IEnumerable<Equipment> AvailableItems( TTTPlayer player )
+	{
+		var items = Game.ActiveScene.GetAllComponents<Equipment>();
+		foreach ( var item in items )
+		{
+			if ( !item.IsValid() ) continue;
+			if ( item.AllowedRoles.Length > 0 && System.Array.IndexOf( item.AllowedRoles, player.Role.Type ) < 0 ) continue;
+			yield return item;
+		}
+	}
+
+	void OnBuy( Equipment item )
+	{
+		if ( !item.IsValid() ) return;
+		Shop.Current?.RequestPurchase( item.GameObject.Id );
+	}
+
+	protected override int BuildHash() => System.HashCode.Combine(
+		IsOpen,
+		LocalPlayer?.Role?.Credits ?? 0,
+		LocalPlayer?.Role?.Type
+	);
+}

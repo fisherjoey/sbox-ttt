@@ -35,6 +35,7 @@ public sealed partial class TTTGameMode : Component, Component.INetworkListener
 
 		if ( !Networking.IsHost ) return;
 
+		Shop.EnsureExists();
 		EnterPhase( RoundPhase.WaitingForPlayers, 0f );
 	}
 

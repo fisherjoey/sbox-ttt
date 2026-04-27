@@ -1,0 +1,104 @@
+ShopPanel
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, 0.6);
+	font-family: "Inter", sans-serif;
+	pointer-events: all;
+	color: white;
+
+	.window
+	{
+		width: 720px;
+		max-width: 90vw;
+		background-color: rgba(20, 24, 32, 0.95);
+		border-radius: 8px;
+		padding: 24px;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.header
+	{
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+
+		h1
+		{
+			font-size: 28px;
+			font-weight: 700;
+			margin: 0;
+		}
+
+		.credits
+		{
+			font-size: 16px;
+			padding: 4px 12px;
+			background-color: rgba(76, 143, 224, 0.25);
+			border-radius: 4px;
+		}
+	}
+
+	.grid
+	{
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 12px;
+	}
+
+	.item
+	{
+		width: 140px;
+		flex-direction: column;
+		align-items: center;
+		padding: 16px 8px;
+		background-color: rgba(255, 255, 255, 0.06);
+		border-radius: 6px;
+		gap: 6px;
+		cursor: pointer;
+
+		&:hover { background-color: rgba(255, 255, 255, 0.12); }
+
+		&.disabled
+		{
+			opacity: 0.4;
+			cursor: not-allowed;
+			&:hover { background-color: rgba(255, 255, 255, 0.06); }
+		}
+
+		.icon
+		{
+			font-family: "Material Icons";
+			font-size: 36px;
+			color: white;
+		}
+
+		.title
+		{
+			font-size: 14px;
+			font-weight: 600;
+			text-align: center;
+		}
+
+		.cost
+		{
+			font-size: 12px;
+			color: rgba(255, 255, 255, 0.7);
+
+			&::before { content: "Cost: "; }
+		}
+	}
+
+	.footer
+	{
+		font-size: 11px;
+		color: rgba(255, 255, 255, 0.4);
+		align-self: flex-end;
+	}
+}
