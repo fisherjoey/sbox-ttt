@@ -29,5 +29,12 @@ public sealed class PlayerRole : Component
 	/// </summary>
 	public bool WasCleanThisRound { get; set; } = true;
 
+	/// <summary>
+	/// Body armor — passive flag set when the player buys it from the shop.
+	/// Halves incoming non-headshot damage. Wears off at round start.
+	/// Vanilla limits to 1 per round (handled via Equipment.LimitPerRound).
+	/// </summary>
+	[Sync] public bool HasBodyArmor { get; set; }
+
 	public RoleTeam Team => Type.Team();
 }

@@ -19,8 +19,15 @@ public sealed partial class TTTPlayer
 		var damage = dmg.Damage;
 
 		// Headshot multiplier — same convention as Facepunch/sandbox Player.cs.
-		if ( dmg.Tags.Contains( DamageTags.Headshot ) )
+		var isHeadshot = dmg.Tags.Contains( DamageTags.Headshot );
+		if ( isHeadshot )
 			damage *= config?.HeadshotMultiplier ?? 2.0f;
+
+		// Body armor halves non-headshot damage. Vanilla is more specific
+		// (only bullet damage to torso) but we don't have a confirmed tag set
+		// for that yet — broad rule for now, refine when API survey lands.
+		if ( !isHeadshot && Role.HasBodyArmor )
+			damage *= 0.5f;
 
 		var attacker = dmg.Attacker?.GetComponent<TTTPlayer>();
 		var isSelf = attacker == this;
