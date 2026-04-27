@@ -23,9 +23,4 @@ public sealed partial class TTTPlayer : Component, Component.IDamageable
 	public bool IsSpectator => Status == PlayerStatus.Spectator;
 
 	public Connection Owner => Network.Owner;
-
-	public void OnConnectionActive( Connection channel )
-	{
-		Network.AssignOwnership( channel );
-	}
 }

@@ -36,13 +36,13 @@ public static class RoleVisibility
 				if ( !ShouldReveal( viewer.Role.Type, target.Role.Type, viewer == target ) )
 					continue;
 
-				// TODO[verify]: targeted-RPC syntax in current s&box API.
-				// Goal: send SendRoleReveal so it ONLY fires on viewerConn's client.
-				// Likely shape uses Rpc.FilterInclude or a Connection-filtered Broadcast,
-				// but I want to confirm against a current Facepunch repo example before
-				// committing to a spelling. As written below, the RPC fires on every
-				// peer and the recipient self-filters by Connection.Local.
-				SendRoleReveal( viewerConn.Id, target.GameObject.Id, target.Role.Type );
+				// Targeted RPC — only viewerConn's peer runs SendRoleReveal.
+				// Engine pattern via Rpc.FilterInclude (Sandbox.Engine/Scene/Networking/Rpc.cs:217),
+				// production reference: Code/UI/Notices/Notices.cs:52 in Facepunch/sandbox.
+				using ( Rpc.FilterInclude( viewerConn ) )
+				{
+					SendRoleReveal( target.GameObject.Id, target.Role.Type );
+				}
 			}
 		}
 	}
@@ -56,14 +56,9 @@ public static class RoleVisibility
 		return false;
 	}
 
-	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
-	private static void SendRoleReveal( Guid recipientConnectionId, Guid targetObjectId, RoleType role )
+	[Rpc.Broadcast]
+	private static void SendRoleReveal( Guid targetObjectId, RoleType role )
 	{
-		// Self-filter so this only takes effect on the intended recipient.
-		// TODO[verify]: Connection.Local on host vs client — confirm host-as-player case.
-		if ( Connection.Local is null || Connection.Local.Id != recipientConnectionId )
-			return;
-
 		_knownRoles[targetObjectId] = role;
 	}
 

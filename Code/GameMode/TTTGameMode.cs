@@ -79,10 +79,11 @@ public sealed partial class TTTGameMode : Component, Component.INetworkListener
 			? SceneUtility.GetPrefabScene( PlayerPrefab ).Clone()
 			: new GameObject( true, $"Player ({channel.DisplayName})" );
 
+		// NetworkSpawn(channel) assigns ownership at spawn; no follow-up
+		// AssignOwnership needed (engine GameObject.Network.cs:177).
 		go.NetworkSpawn( channel );
 
 		var player = go.GetComponent<TTTPlayer>() ?? go.Components.Create<TTTPlayer>();
-		player.OnConnectionActive( channel );
 		player.Respawn();
 	}
 
