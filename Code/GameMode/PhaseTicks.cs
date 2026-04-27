@@ -10,9 +10,8 @@ public sealed partial class TTTGameMode
 	{
 		if ( ConnectedNonSpectators() < MinPlayers ) return;
 
-		// Round 0 is given a longer prep so the first players have time to settle in.
-		var firstRoundPad = RoundNumber == 0 ? PreparingDuration : 0f;
-		EnterPhase( RoundPhase.Preparing, PreparingDuration + firstRoundPad );
+		var prep = RoundNumber == 0 ? FirstPreparingDuration : PreparingDuration;
+		EnterPhase( RoundPhase.Preparing, prep );
 
 		foreach ( var p in AllPlayers() )
 		{
@@ -93,6 +92,23 @@ public sealed partial class TTTGameMode
 		LastWinner = winner;
 		RoleVisibility.Clear();
 		EnterPhase( RoundPhase.PostRound, PostRoundDuration );
+	}
+
+	/// <summary>
+	/// Hook called by the (future) damage / kill system when an alive player
+	/// transitions to dead. Extends the active phase timer if haste mode is on.
+	/// Host-only.
+	/// </summary>
+	public void OnPlayerKilled( TTTPlayer victim )
+	{
+		if ( !Networking.IsHost ) return;
+		if ( Phase != RoundPhase.Active ) return;
+
+		_alivePlayers.Remove( victim );
+		_spectators.Add( victim );
+
+		if ( HasteMode )
+			PhaseEndsAt = (float)PhaseEndsAt + HasteSecondsPerDeath;
 	}
 
 	private void TickPostRound()

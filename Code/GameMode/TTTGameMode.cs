@@ -14,10 +14,19 @@ public sealed partial class TTTGameMode : Component, Component.INetworkListener
 	[Sync( SyncFlags.FromHost )] public int RoundNumber { get; set; }
 	[Sync( SyncFlags.FromHost )] public RoleTeam LastWinner { get; set; } = RoleTeam.Innocents;
 
+	// Defaults match vanilla GMod TTT convars (see CATALOG.md §1).
 	[Property] public int MinPlayers { get; set; } = 2;
-	[Property] public float PreparingDuration { get; set; } = 15f;
-	[Property] public float ActiveDuration { get; set; } = 300f;
-	[Property] public float PostRoundDuration { get; set; } = 10f;
+	[Property] public float PreparingDuration { get; set; } = 30f;        // ttt_preptime_seconds
+	[Property] public float FirstPreparingDuration { get; set; } = 60f;   // ttt_firstpreptime
+	[Property] public float ActiveDuration { get; set; } = 300f;          // haste starting minutes (5 min)
+	[Property] public float PostRoundDuration { get; set; } = 30f;        // ttt_posttime_seconds
+
+	/// <summary>
+	/// Haste mode (default on in vanilla). Each death extends the active timer
+	/// by <see cref="HasteSecondsPerDeath"/> to pressure traitors to act.
+	/// </summary>
+	[Property] public bool HasteMode { get; set; } = true;
+	[Property] public float HasteSecondsPerDeath { get; set; } = 30f;     // ttt_haste_minutes_per_death * 60
 
 	[Property, ResourceType( "prefab" )] public PrefabFile PlayerPrefab { get; set; }
 
