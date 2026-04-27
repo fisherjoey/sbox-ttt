@@ -1,0 +1,76 @@
+ChatPanel
+{
+	position: absolute;
+	left: 24px;
+	bottom: 24px;
+	width: 480px;
+	flex-direction: column;
+	gap: 6px;
+	pointer-events: none;
+	font-family: "Inter", sans-serif;
+	color: white;
+
+	&.open
+	{
+		pointer-events: all;
+	}
+
+	.output
+	{
+		flex-direction: column;
+		gap: 4px;
+		max-height: 240px;
+		overflow: hidden;
+
+		.entry
+		{
+			flex-direction: row;
+			gap: 6px;
+			font-size: 14px;
+			text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+
+			.author { font-weight: 600; color: rgba(255, 255, 255, 0.9); }
+			.author::after { content: ":"; }
+			.message { color: rgba(255, 255, 255, 0.95); }
+		}
+
+		.entry.channel-traitor
+		{
+			.author { color: #e04c4c; }
+			.message { color: #ffb0b0; }
+		}
+
+		.entry.channel-system .system
+		{
+			color: rgba(255, 220, 100, 0.9);
+			font-style: italic;
+		}
+	}
+
+	.input
+	{
+		flex-direction: row;
+		align-items: center;
+		gap: 4px;
+		background-color: rgba(0, 0, 0, 0.6);
+		padding: 6px 10px;
+		border-radius: 4px;
+		opacity: 0;
+
+		.prompt
+		{
+			font-size: 14px;
+			font-weight: 600;
+			color: #e04c4c;
+		}
+
+		TextEntry
+		{
+			width: 100%;
+			font-size: 14px;
+			color: white;
+		}
+	}
+
+	&.open .input { opacity: 1; }
+}

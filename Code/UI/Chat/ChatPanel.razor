@@ -1,0 +1,159 @@
+@using Sandbox;
+@using Sandbox.UI;
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+@inherits PanelComponent
+@namespace TTT.UI
+
+<root class=@(InputBox?.HasFocus == true ? "open" : "")>
+	<div class="output">
+		@foreach ( var entry in Entries )
+		{
+			<div class="entry channel-@entry.Channel.ToString().ToLower()">
+				@if ( entry.Channel == ChatChannel.System )
+				{
+					<div class="system">@entry.Message</div>
+				}
+				else
+				{
+					<div class="author">@entry.Author</div>
+					<div class="message">@entry.Message</div>
+				}
+			</div>
+		}
+	</div>
+
+	<div class="input">
+		<div class="prompt">@PromptLabel()</div>
+		<TextEntry @ref="InputBox" onsubmit="@OnSubmit"></TextEntry>
+	</div>
+</root>
+
+@code
+{
+	public record Entry( ChatChannel Channel, string Author, string Message, RealTimeSince TimeSinceAdded );
+	List<Entry> Entries { get; } = new();
+	TextEntry InputBox = default;
+	ChatChannel _pendingChannel = ChatChannel.Global;
+
+	public static ChatPanel Current => Game.ActiveScene?.GetAllComponents<ChatPanel>().FirstOrDefault();
+
+	protected override void OnUpdate()
+	{
+		if ( InputBox is null ) return;
+
+		Panel.AcceptsFocus = false;
+
+		if ( !InputBox.HasFocus )
+		{
+			if ( Input.Pressed( "chat" ) )
+			{
+				_pendingChannel = ChatChannel.Global;
+				InputBox.Focus();
+			}
+			else if ( Input.Pressed( "traitor_chat" ) && CanUseTraitorChat() )
+			{
+				_pendingChannel = ChatChannel.Traitor;
+				InputBox.Focus();
+			}
+		}
+
+		if ( Entries.RemoveAll( e => e.TimeSinceAdded > 20f ) > 0 )
+			StateHasChanged();
+	}
+
+	string PromptLabel() => _pendingChannel switch
+	{
+		ChatChannel.Traitor => "[Traitor] ",
+		ChatChannel.System  => "",
+		_                   => "",
+	};
+
+	static bool CanUseTraitorChat()
+	{
+		var local = LocalPlayer;
+		return local.IsValid() && local.IsAlive && local.Role.Type == RoleType.Traitor;
+	}
+
+	static TTTPlayer LocalPlayer
+	{
+		get
+		{
+			if ( Connection.Local is null ) return null;
+			foreach ( var p in Game.ActiveScene.GetAllComponents<TTTPlayer>() )
+				if ( p.Network.Owner == Connection.Local ) return p;
+			return null;
+		}
+	}
+
+	void OnSubmit()
+	{
+		var text = (InputBox.Text ?? "").Trim();
+		InputBox.Text = "";
+
+		if ( string.IsNullOrWhiteSpace( text ) ) return;
+
+		RequestSay( text, _pendingChannel );
+		_pendingChannel = ChatChannel.Global;
+	}
+
+	[Rpc.Host]
+	public void RequestSay( string message, ChatChannel channel )
+	{
+		if ( !Networking.IsHost ) return;
+		message = message.Truncate( 300 );
+		if ( string.IsNullOrWhiteSpace( message ) ) return;
+
+		var speaker = TTTGameMode.Current?.AllPlayers().FirstOrDefault( p => p.Network.Owner == Rpc.Caller );
+		if ( !speaker.IsValid() ) return;
+
+		Predicate<Connection> filter;
+
+		if ( channel == ChatChannel.Traitor )
+		{
+			if ( speaker.Role.Type != RoleType.Traitor || !speaker.IsAlive ) return;
+			filter = c => ResolveOwner( c ) is { IsAlive: true } p && p.Role.Type == RoleType.Traitor;
+		}
+		else if ( TTTGameMode.Current?.Phase != RoundPhase.Active )
+		{
+			filter = _ => true;
+		}
+		else
+		{
+			var speakerAlive = speaker.IsAlive;
+			filter = c => ResolveOwner( c ) is { } p && p.IsAlive == speakerAlive;
+		}
+
+		var author = speaker.Network.Owner?.DisplayName ?? "Unknown";
+
+		using ( Rpc.FilterInclude( filter ) )
+		{
+			BroadcastEntry( channel, author, message );
+		}
+	}
+
+	static TTTPlayer ResolveOwner( Connection c ) =>
+		Game.ActiveScene?.GetAllComponents<TTTPlayer>().FirstOrDefault( p => p.Network.Owner == c );
+
+	[Rpc.Broadcast]
+	private void BroadcastEntry( ChatChannel channel, string author, string message )
+	{
+		Entries.Add( new Entry( channel, author, message, 0f ) );
+		StateHasChanged();
+	}
+
+	/// <summary>Host-only system message broadcast to everyone.</summary>
+	[Rpc.Broadcast( NetFlags.HostOnly )]
+	public void BroadcastSystem( string message )
+	{
+		Entries.Add( new Entry( ChatChannel.System, "", message.Truncate( 300 ), 0f ) );
+		StateHasChanged();
+	}
+
+	protected override int BuildHash() => System.HashCode.Combine(
+		Entries.Count,
+		InputBox?.HasFocus ?? false,
+		_pendingChannel
+	);
+}
