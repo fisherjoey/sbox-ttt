@@ -9,7 +9,9 @@ namespace TTT;
 /// </summary>
 public static class GameConfigValidator
 {
-	public static IReadOnlyList<string> Validate( GameConfig c )
+	public static IReadOnlyList<string> Validate( GameConfig c ) => Validate( c.ToSnapshot() );
+
+	public static IReadOnlyList<string> Validate( GameConfigSnapshot c )
 	{
 		var errors = new List<string>();
 
@@ -41,10 +43,8 @@ public static class GameConfigValidator
 				errors.Add( "RecoveryPerRound must be > 0 when karma is enabled, else karma can only decrease." );
 
 			// Damage scale at kick threshold must still produce non-zero damage,
-			// otherwise low-karma players become invincible. Formula from karma.lua:
-			//   k = karma - 1000;  df = 1 + 0.0007k - 0.000002k²; clamp [0.1, 1.0]
-			var k = c.KickThreshold - 1000f;
-			var df = MathF.Max( 0.1f, MathF.Min( 1.0f, 1f + 0.0007f * k - 0.000002f * k * k ) );
+			// otherwise low-karma players become invincible. Formula from karma.lua.
+			var df = KarmaSystem.GetDamageFactor( c.KickThreshold, c.KarmaMode, c.StartingKarma );
 			if ( df <= 0.05f )
 				errors.Add( $"At KickThreshold karma, damage scale is {df:P0}. Players become near-invincible before being kicked." );
 		}

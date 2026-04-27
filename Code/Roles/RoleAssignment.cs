@@ -13,11 +13,14 @@ public static class RoleAssignment
 {
 	public static void Assign( IList<TTTPlayer> players, GameConfig config )
 	{
-		var n = players.Count;
-		var traitorCount = Math.Clamp( (int)MathF.Floor( n * config.TraitorPct ), 1, 32 );
-		var detectiveCount = n >= config.DetectiveMinPlayers
-			? Math.Clamp( (int)MathF.Floor( n * config.DetectivePct ), 0, 32 )
-			: 0;
+		var counts = RoleAssignmentMath.Compute(
+			players.Count,
+			config.TraitorPct,
+			config.DetectivePct,
+			config.DetectiveMinPlayers );
+
+		var traitorCount = counts.Traitors;
+		var detectiveCount = counts.Detectives;
 
 		players.Shuffle();
 		var i = 0;

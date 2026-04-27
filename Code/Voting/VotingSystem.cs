@@ -126,10 +126,8 @@ public sealed class VotingSystem : Component
 
 	private void ResolveMotion()
 	{
-		var nonSpectators = ConnectedNonSpectators();
-		var quorum = (int)MathF.Ceiling( nonSpectators * MotionQuorumPct );
-
-		if ( _seconds.Count >= quorum && nonSpectators > 0 )
+		var next = VotingResolution.ResolveMotion( _seconds.Count, ConnectedNonSpectators(), MotionQuorumPct );
+		if ( next == VotePhase.Vote )
 		{
 			_yesVotes.Clear();
 			_noVotes.Clear();
@@ -161,10 +159,8 @@ public sealed class VotingSystem : Component
 
 	private void ResolveVote()
 	{
-		var total = _yesVotes.Count + _noVotes.Count;
-		var pass = total > 0 && (_yesVotes.Count / (float)total) >= VotePassThreshold;
-
-		if ( pass )
+		var next = VotingResolution.ResolveVote( _yesVotes.Count, _noVotes.Count, VotePassThreshold );
+		if ( next == VotePhase.Idle )
 		{
 			ApplyMotion();
 			TransitionTo( VotePhase.Idle, "" );
@@ -217,5 +213,5 @@ public sealed class VotingSystem : Component
 	private static int ConnectedNonSpectators() =>
 		TTTGameMode.Current?.AllPlayers().Count( p => p.IsValid() && !p.IsSpectator ) ?? 0;
 
-	public int Quorum => (int)MathF.Ceiling( ConnectedNonSpectators() * MotionQuorumPct );
+	public int Quorum => VotingResolution.RequiredQuorum( ConnectedNonSpectators(), MotionQuorumPct );
 }
