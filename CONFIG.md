@@ -147,6 +147,45 @@ Three-state machine, host-authoritative. Anti-grief guarantees baked in.
 
 v2 is the load-bearing one — it unblocks playtesting with non-default values. v3/v4 are UX layers on top.
 
+## Anti-ghosting strategy
+
+"Ghosting" = a dead player communicating with a living player out-of-band (Discord, in person) to leak role information. Three layers, in priority order:
+
+### Layer 1 — chat/voice scoping (do this first)
+
+The vast majority of in-game info leakage is solved by routing chat correctly. Vanilla TTT does this and most clones get it right.
+
+- **Voice chat.** Alive players can hear other alive players. Dead players hear other dead players. No crossing. Only exception: the round-end period, where everyone can talk freely.
+- **Text chat.** Alive↔alive, dead↔dead. Spectator chat is its own channel. Traitor team chat (hold-Shift in vanilla) is alive-traitors-only and visible only to alive traitors.
+- **Voice radius / proximity.** Vanilla TTT is global voice, but a proximity option `ttt_voice_radius` exists. Off by default; expose as a config knob.
+
+This layer is `v2` work — needs the chat/voice layer wired up, no detection ML required, no false-positive risk. It eliminates the *capability* to leak rather than trying to detect the *behavior*. Highest ROI by far.
+
+### Layer 2 — admin tools (post-launch)
+
+Surface suspicious patterns for human review rather than auto-flagging:
+
+- Per-player kill-target distribution across rounds (do you always shoot the same player who happens to be alive when you're spectating?)
+- Suspect-accusation accuracy (does your kos call resolve to traitors faster than chance?)
+- Time-from-teammate-death-to-suspect-shot histograms (do you suddenly know who to shoot 5 seconds after a friend dies?)
+
+Admin opens a per-server dashboard, sees patterns, makes a human call. No auto-action. This is `v3+` and requires telemetry plumbing we haven't designed.
+
+### Layer 3 — algorithmic detection (probably never)
+
+Anomaly detection on in-game signals (innocents-shooting-traitors-faster-than-chance, dead-player gaze correlating with friend's kills) is technically possible but fundamentally hard:
+
+- **Skilled players look identical to ghosters.** Reading tells, following hunches, reacting to suspicious behavior is the actual game. A heuristic that flags "innocent who shot the traitor first" punishes skill.
+- **No ground truth.** You can only validate against community reports, which are noisy and political.
+- **Adversarial.** Once any heuristic is documented, ghosters adjust.
+
+If we ever build this, it should output suspicion scores for admin review (i.e. enhance Layer 2), not auto-action. Punt indefinitely.
+
+### What this means for v1/v2
+
+- Voice/text scoping is on the v1 cut list (per CATALOG.md gap analysis: load-bearing) and stays cut for v1 — but escalate to **first item in v2** because it's the cheapest meaningful improvement to the social game.
+- No detection algorithm work. If a community wants telemetry hooks for admin tools, we add the data emission in v3 and let the community build dashboards.
+
 ## Open questions
 
 - **Presets.** Should we ship "Vanilla / Action / Stealth" preset slots as `GameResource` files that load into `GameConfig`? Probably yes, but defer to v3.
