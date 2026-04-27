@@ -1,0 +1,277 @@
+@using Sandbox;
+@using Sandbox.UI;
+@using System.Collections.Generic;
+@using System.Linq;
+@inherits PanelComponent
+@namespace TTT.UI
+
+@{
+	var canEdit = Networking.IsHost;
+}
+
+@if ( IsOpen && canEdit )
+{
+	<root>
+		<div class="window">
+			<div class="header">
+				<h1>Game Config</h1>
+				<button onclick=@Close>×</button>
+			</div>
+
+			<div class="scroll">
+				<div class="group">
+					<h2>Pace</h2>
+					@RenderRow( "Prep duration (s)",       _prepDuration,       v => _prepDuration = v )
+					@RenderRow( "First prep duration (s)", _firstPrepDuration,  v => _firstPrepDuration = v )
+					@RenderRow( "Active duration (s)",     _activeDuration,     v => _activeDuration = v )
+					@RenderRow( "Post-round duration (s)", _postRoundDuration,  v => _postRoundDuration = v )
+					@RenderToggle( "Haste mode",          _hasteMode,          v => _hasteMode = v )
+					@RenderRow( "Haste seconds per death", _hasteSecondsPerDeath, v => _hasteSecondsPerDeath = v )
+				</div>
+
+				<div class="group">
+					<h2>Roles</h2>
+					@RenderRow( "Traitor %",                _traitorPct,         v => _traitorPct = v )
+					@RenderRow( "Detective %",              _detectivePct,       v => _detectivePct = v )
+					@RenderRow( "Detective min players",    _detectiveMinPlayers, v => _detectiveMinPlayers = v )
+					@RenderRow( "Min karma for detective",  _minDetectiveKarma,  v => _minDetectiveKarma = v )
+				</div>
+
+				<div class="group">
+					<h2>Combat</h2>
+					@RenderRow( "Base health",              _baseHealth,         v => _baseHealth = v )
+					@RenderRow( "Headshot multiplier",      _headshotMultiplier, v => _headshotMultiplier = v )
+					@RenderToggle( "Friendly fire",         _friendlyFire,       v => _friendlyFire = v )
+					@RenderToggle( "Dying shot",            _dyingShot,          v => _dyingShot = v )
+				</div>
+
+				<div class="group">
+					<h2>Karma</h2>
+					@RenderRow( "Karma mode (0=Off,1=Lenient,2=Strict)", _karmaMode, v => _karmaMode = v )
+					@RenderRow( "Starting karma",           _startingKarma,      v => _startingKarma = v )
+					@RenderRow( "Kick threshold",           _kickThreshold,      v => _kickThreshold = v )
+					@RenderRow( "Recovery per round",       _recoveryPerRound,   v => _recoveryPerRound = v )
+					@RenderRow( "Clean round bonus",        _cleanRoundBonus,    v => _cleanRoundBonus = v )
+					@RenderToggle( "Auto-kick",             _karmaAutoKick,      v => _karmaAutoKick = v )
+				</div>
+
+				<div class="group">
+					<h2>Economy</h2>
+					@RenderRow( "Starting credits (Traitor)",   _startingCreditsTraitor,    v => _startingCreditsTraitor = v )
+					@RenderRow( "Starting credits (Detective)", _startingCreditsDetective,  v => _startingCreditsDetective = v )
+					@RenderRow( "Kill bonus credits",           _killBonusCredits,          v => _killBonusCredits = v )
+					@RenderRow( "Max credits",                  _maxCredits,                v => _maxCredits = v )
+					@RenderRow( "Equipment limit per round",    _equipmentLimitPerRound,    v => _equipmentLimitPerRound = v )
+				</div>
+
+				<div class="group">
+					<h2>Map</h2>
+					@RenderRow( "Round limit",              _roundLimit,         v => _roundLimit = v )
+					@RenderRow( "Time limit (min)",         _timeLimitMinutes,   v => _timeLimitMinutes = v )
+					@RenderRow( "Min players",              _minPlayers,         v => _minPlayers = v )
+					@RenderRow( "Idle to spectator (s)",    _idleToSpectator,    v => _idleToSpectator = v )
+				</div>
+
+				@if ( _errors.Count > 0 )
+				{
+					<div class="errors">
+						<h3>Validation errors</h3>
+						@foreach ( var err in _errors )
+						{
+							<div class="error">@err</div>
+						}
+					</div>
+				}
+			</div>
+
+			<div class="footer">
+				<button onclick=@ResetToVanilla class="secondary">Reset to vanilla</button>
+				<button onclick=@OnSave class="primary">Save</button>
+			</div>
+		</div>
+	</root>
+}
+
+@code
+{
+	bool IsOpen { get; set; }
+	IReadOnlyList<string> _errors = System.Array.Empty<string>();
+
+	// Mirror state for the form. Strings for numerics so partial input doesn't
+	// crash the parser; bools as live values bound to toggles.
+	string _prepDuration, _firstPrepDuration, _activeDuration, _postRoundDuration, _hasteSecondsPerDeath;
+	string _traitorPct, _detectivePct, _detectiveMinPlayers, _minDetectiveKarma;
+	string _baseHealth, _headshotMultiplier;
+	string _karmaMode, _startingKarma, _kickThreshold, _recoveryPerRound, _cleanRoundBonus;
+	string _startingCreditsTraitor, _startingCreditsDetective, _killBonusCredits, _maxCredits, _equipmentLimitPerRound;
+	string _roundLimit, _timeLimitMinutes, _minPlayers, _idleToSpectator;
+	bool _hasteMode, _friendlyFire, _dyingShot, _karmaAutoKick;
+
+	protected override void OnUpdate()
+	{
+		if ( Input.Pressed( "config_panel" ) )
+		{
+			if ( !IsOpen ) SyncFromConfig();
+			IsOpen = !IsOpen;
+		}
+		if ( Input.EscapePressed && IsOpen ) Close();
+	}
+
+	void Close() => IsOpen = false;
+
+	void SyncFromConfig()
+	{
+		var c = GameConfig.Current;
+		if ( c is null ) return;
+
+		_prepDuration = c.PrepDuration.ToString();
+		_firstPrepDuration = c.FirstPrepDuration.ToString();
+		_activeDuration = c.ActiveDuration.ToString();
+		_postRoundDuration = c.PostRoundDuration.ToString();
+		_hasteMode = c.HasteMode;
+		_hasteSecondsPerDeath = c.HasteSecondsPerDeath.ToString();
+
+		_traitorPct = c.TraitorPct.ToString();
+		_detectivePct = c.DetectivePct.ToString();
+		_detectiveMinPlayers = c.DetectiveMinPlayers.ToString();
+		_minDetectiveKarma = c.MinDetectiveKarma.ToString();
+
+		_baseHealth = c.BaseHealth.ToString();
+		_headshotMultiplier = c.HeadshotMultiplier.ToString();
+		_friendlyFire = c.FriendlyFire;
+		_dyingShot = c.DyingShot;
+
+		_karmaMode = ((int)c.KarmaMode).ToString();
+		_startingKarma = c.StartingKarma.ToString();
+		_kickThreshold = c.KickThreshold.ToString();
+		_recoveryPerRound = c.RecoveryPerRound.ToString();
+		_cleanRoundBonus = c.CleanRoundBonus.ToString();
+		_karmaAutoKick = c.KarmaAutoKick;
+
+		_startingCreditsTraitor = c.StartingCreditsTraitor.ToString();
+		_startingCreditsDetective = c.StartingCreditsDetective.ToString();
+		_killBonusCredits = c.KillBonusCredits.ToString();
+		_maxCredits = c.MaxCredits.ToString();
+		_equipmentLimitPerRound = c.EquipmentLimitPerRound.ToString();
+
+		_roundLimit = c.RoundLimit.ToString();
+		_timeLimitMinutes = c.TimeLimitMinutes.ToString();
+		_minPlayers = c.MinPlayers.ToString();
+		_idleToSpectator = c.IdleToSpectatorSeconds.ToString();
+	}
+
+	void OnSave()
+	{
+		var c = GameConfig.Current;
+		if ( c is null || !Networking.IsHost ) return;
+
+		ApplyToConfig( c );
+		_errors = c.TryApply();
+
+		if ( _errors.Count == 0 )
+			IsOpen = false;
+	}
+
+	void ApplyToConfig( GameConfig c )
+	{
+		if ( float.TryParse( _prepDuration, out var f ) ) c.PrepDuration = f;
+		if ( float.TryParse( _firstPrepDuration, out f ) ) c.FirstPrepDuration = f;
+		if ( float.TryParse( _activeDuration, out f ) ) c.ActiveDuration = f;
+		if ( float.TryParse( _postRoundDuration, out f ) ) c.PostRoundDuration = f;
+		c.HasteMode = _hasteMode;
+		if ( float.TryParse( _hasteSecondsPerDeath, out f ) ) c.HasteSecondsPerDeath = f;
+
+		if ( float.TryParse( _traitorPct, out f ) ) c.TraitorPct = f;
+		if ( float.TryParse( _detectivePct, out f ) ) c.DetectivePct = f;
+		if ( int.TryParse( _detectiveMinPlayers, out var i ) ) c.DetectiveMinPlayers = i;
+		if ( int.TryParse( _minDetectiveKarma, out i ) ) c.MinDetectiveKarma = i;
+
+		if ( float.TryParse( _baseHealth, out f ) ) c.BaseHealth = f;
+		if ( float.TryParse( _headshotMultiplier, out f ) ) c.HeadshotMultiplier = f;
+		c.FriendlyFire = _friendlyFire;
+		c.DyingShot = _dyingShot;
+
+		if ( int.TryParse( _karmaMode, out i ) && i >= 0 && i <= 2 ) c.KarmaMode = (KarmaMode)i;
+		if ( int.TryParse( _startingKarma, out i ) ) c.StartingKarma = i;
+		if ( int.TryParse( _kickThreshold, out i ) ) c.KickThreshold = i;
+		if ( int.TryParse( _recoveryPerRound, out i ) ) c.RecoveryPerRound = i;
+		if ( int.TryParse( _cleanRoundBonus, out i ) ) c.CleanRoundBonus = i;
+		c.KarmaAutoKick = _karmaAutoKick;
+
+		if ( int.TryParse( _startingCreditsTraitor, out i ) ) c.StartingCreditsTraitor = i;
+		if ( int.TryParse( _startingCreditsDetective, out i ) ) c.StartingCreditsDetective = i;
+		if ( int.TryParse( _killBonusCredits, out i ) ) c.KillBonusCredits = i;
+		if ( int.TryParse( _maxCredits, out i ) ) c.MaxCredits = i;
+		if ( int.TryParse( _equipmentLimitPerRound, out i ) ) c.EquipmentLimitPerRound = i;
+
+		if ( int.TryParse( _roundLimit, out i ) ) c.RoundLimit = i;
+		if ( int.TryParse( _timeLimitMinutes, out i ) ) c.TimeLimitMinutes = i;
+		if ( int.TryParse( _minPlayers, out i ) ) c.MinPlayers = i;
+		if ( int.TryParse( _idleToSpectator, out i ) ) c.IdleToSpectatorSeconds = i;
+	}
+
+	void ResetToVanilla()
+	{
+		// Snapshot the defaults from a fresh GameConfig instance.
+		var fresh = new GameObject().Components.Create<GameConfig>();
+		var c = GameConfig.Current;
+		if ( c is null || fresh is null ) return;
+
+		// Copy all defaults onto the live config — easy bulk reset, no field
+		// list to maintain.
+		c.PrepDuration = fresh.PrepDuration;
+		c.FirstPrepDuration = fresh.FirstPrepDuration;
+		c.ActiveDuration = fresh.ActiveDuration;
+		c.PostRoundDuration = fresh.PostRoundDuration;
+		c.HasteMode = fresh.HasteMode;
+		c.HasteSecondsPerDeath = fresh.HasteSecondsPerDeath;
+		c.TraitorPct = fresh.TraitorPct;
+		c.DetectivePct = fresh.DetectivePct;
+		c.DetectiveMinPlayers = fresh.DetectiveMinPlayers;
+		c.MinDetectiveKarma = fresh.MinDetectiveKarma;
+		c.BaseHealth = fresh.BaseHealth;
+		c.HeadshotMultiplier = fresh.HeadshotMultiplier;
+		c.FriendlyFire = fresh.FriendlyFire;
+		c.DyingShot = fresh.DyingShot;
+		c.KarmaMode = fresh.KarmaMode;
+		c.StartingKarma = fresh.StartingKarma;
+		c.KickThreshold = fresh.KickThreshold;
+		c.RecoveryPerRound = fresh.RecoveryPerRound;
+		c.CleanRoundBonus = fresh.CleanRoundBonus;
+		c.KarmaAutoKick = fresh.KarmaAutoKick;
+		c.StartingCreditsTraitor = fresh.StartingCreditsTraitor;
+		c.StartingCreditsDetective = fresh.StartingCreditsDetective;
+		c.KillBonusCredits = fresh.KillBonusCredits;
+		c.MaxCredits = fresh.MaxCredits;
+		c.EquipmentLimitPerRound = fresh.EquipmentLimitPerRound;
+		c.RoundLimit = fresh.RoundLimit;
+		c.TimeLimitMinutes = fresh.TimeLimitMinutes;
+		c.MinPlayers = fresh.MinPlayers;
+		c.IdleToSpectatorSeconds = fresh.IdleToSpectatorSeconds;
+
+		fresh.GameObject.Destroy();
+		SyncFromConfig();
+		_errors = System.Array.Empty<string>();
+	}
+
+	RenderFragment RenderRow( string label, string value, System.Action<string> setter )
+	{
+		// Stored as a closure; the bound TextEntry calls setter via Value:bind
+		return @<div class="row">
+			<label>@label</label>
+			<TextEntry Value:bind=@value></TextEntry>
+		</div>;
+	}
+
+	RenderFragment RenderToggle( string label, bool value, System.Action<bool> setter )
+	{
+		return @<div class="row">
+			<label>@label</label>
+			<button class=@(value ? "toggle on" : "toggle off") onclick=@(() => { setter( !value ); StateHasChanged(); })>
+				@(value ? "ON" : "OFF")
+			</button>
+		</div>;
+	}
+
+	protected override int BuildHash() => System.HashCode.Combine( IsOpen, _errors.Count, _hasteMode, _friendlyFire, _karmaAutoKick );
+}
