@@ -1,0 +1,35 @@
+{
+  "Title": "TTT",
+  "Type": "game",
+  "Org": "fisherjoey",
+  "Ident": "ttt",
+  "Schema": 1,
+  "IncludeSourceFiles": false,
+  "Resources": "/fonts/*\n/UI/*",
+  "PackageReferences": [],
+  "EditorReferences": null,
+  "Mounts": [],
+  "IsStandaloneOnly": false,
+  "Metadata": {
+    "MaxPlayers": 16,
+    "MinPlayers": 2,
+    "TickRate": 50,
+    "GameNetworkType": "Multiplayer",
+    "MapSelect": "Unrestricted",
+    "MapList": [
+      "facepunch.flatgrass"
+    ],
+    "RankType": "None",
+    "PerMapRanking": false,
+    "LeaderboardType": "None",
+    "CsProjName": "",
+    "StartupScene": "scenes/main.scene",
+    "ControlModes": {
+      "Keyboard": true,
+      "VR": false,
+      "Gamepad": false
+    },
+    "LaunchMode": "Launcher",
+    "MapStartupScene": "scenes/main.scene"
+  }
+}
