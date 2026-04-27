@@ -67,6 +67,8 @@ public sealed partial class TTTGameMode
 		}
 
 		RoundNumber++;
+		LastRoundDeaths = 0;
+		RoundStartedAt = 0f;
 		EnterPhase( RoundPhase.Active, Config.ActiveDuration );
 	}
 
@@ -78,29 +80,31 @@ public sealed partial class TTTGameMode
 		if ( aliveTeams.Count == 0 )
 		{
 			// Everyone dead. Treat as Traitor win.
-			EndRound( RoleTeam.Traitors );
+			EndRound( RoleTeam.Traitors, WinReason.Elimination );
 			return;
 		}
 
 		if ( aliveTeams.Count == 1 && aliveTeams[0] == RoleTeam.Innocents )
 		{
-			EndRound( RoleTeam.Innocents );
+			EndRound( RoleTeam.Innocents, WinReason.Elimination );
 			return;
 		}
 
 		if ( aliveTeams.Count == 1 && aliveTeams[0] == RoleTeam.Traitors )
 		{
-			EndRound( RoleTeam.Traitors );
+			EndRound( RoleTeam.Traitors, WinReason.Elimination );
 			return;
 		}
 
 		if ( PhaseEndsAt <= 0 )
-			EndRound( RoleTeam.Innocents );
+			EndRound( RoleTeam.Innocents, WinReason.Timeout );
 	}
 
-	private void EndRound( RoleTeam winner )
+	private void EndRound( RoleTeam winner, WinReason reason )
 	{
 		LastWinner = winner;
+		LastWinReason = reason;
+		LastRoundDuration = (float)RoundStartedAt;
 
 		ApplyRoundEndKarma();
 
@@ -152,6 +156,7 @@ public sealed partial class TTTGameMode
 
 		_alivePlayers.Remove( victim );
 		_spectators.Add( victim );
+		LastRoundDeaths++;
 
 		if ( Config.HasteMode )
 			PhaseEndsAt = (float)PhaseEndsAt + Config.HasteSecondsPerDeath;

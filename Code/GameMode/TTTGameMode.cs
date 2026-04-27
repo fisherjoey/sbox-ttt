@@ -13,6 +13,10 @@ public sealed partial class TTTGameMode : Component, Component.INetworkListener
 	[Sync( SyncFlags.FromHost )] public TimeUntil PhaseEndsAt { get; set; }
 	[Sync( SyncFlags.FromHost )] public int RoundNumber { get; set; }
 	[Sync( SyncFlags.FromHost )] public RoleTeam LastWinner { get; set; } = RoleTeam.Innocents;
+	[Sync( SyncFlags.FromHost )] public WinReason LastWinReason { get; set; } = WinReason.Timeout;
+	[Sync( SyncFlags.FromHost )] public int LastRoundDeaths { get; set; }
+	[Sync( SyncFlags.FromHost )] public TimeSince LastRoundDuration { get; set; }
+	[Sync( SyncFlags.FromHost )] public TimeSince RoundStartedAt { get; set; }
 
 	/// <summary>
 	/// All tunable values live on <see cref="GameConfig"/>, which is on the same
