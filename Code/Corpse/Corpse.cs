@@ -38,6 +38,50 @@ public sealed class Corpse : Component
 	public record struct DnaSample( Guid PlayerId, RealTimeUntil ExpiresAt );
 
 	/// <summary>
+	/// How long DNA samples remain scannable on a corpse. Scanner samples that
+	/// expire return "lost." Vanilla doesn't have a single canonical number;
+	/// 5 minutes is a reasonable starting point and tunable later.
+	/// </summary>
+	public const float DnaSampleLifetime = 300f;
+
+	/// <summary>
+	/// Spawn a host-owned corpse at the victim's world position carrying the
+	/// metadata needed for identification and the DNA scanner. Call from the
+	/// host's death handler. Returns the spawned Corpse component.
+	///
+	/// TODO[v2]: spawn a citizen ragdoll on this GameObject so it renders.
+	/// Currently the corpse is an invisible marker — fine for logic testing,
+	/// not for actual play.
+	/// </summary>
+	public static Corpse SpawnFor( TTTPlayer victim, in DamageInfo dmg )
+	{
+		if ( !Networking.IsHost || !victim.IsValid() )
+			return null;
+
+		var go = new GameObject( true, $"Corpse ({victim.Network.Owner?.DisplayName ?? "?"})" );
+		go.WorldPosition = victim.WorldPosition;
+		go.WorldRotation = victim.WorldRotation;
+
+		var corpse = go.Components.Create<Corpse>();
+		corpse.PlayerName = victim.Network.Owner?.DisplayName ?? "Unknown";
+		corpse.VictimId = victim.GameObject.Id;
+		corpse.VictimRole = victim.Role.Type;
+		corpse.Credits = victim.Role.Credits;
+		corpse.KillerWeapon = dmg.Weapon?.GameObject?.Name;
+		corpse.TimeSinceDeath = 0f;
+
+		var killerPlayer = dmg.Attacker?.GetComponent<TTTPlayer>();
+		if ( killerPlayer.IsValid() && killerPlayer != victim )
+		{
+			corpse.KillerId = killerPlayer.GameObject.Id;
+			corpse.DnaSamples.Add( new DnaSample( killerPlayer.GameObject.Id, DnaSampleLifetime ) );
+		}
+
+		go.NetworkSpawn( true, null );
+		return corpse;
+	}
+
+	/// <summary>
 	/// Called when a player interacts with the corpse. Host-side: reveal the role,
 	/// credit transfer, broadcast the identification event.
 	/// </summary>

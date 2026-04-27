@@ -10,7 +10,7 @@ public enum PlayerStatus
 }
 
 [Title( "TTT Player" ), Icon( "person" )]
-public sealed partial class TTTPlayer : Component
+public sealed partial class TTTPlayer : Component, Component.IDamageable
 {
 	[Sync] public PlayerStatus Status { get; set; } = PlayerStatus.Alive;
 	[Sync] public float Health { get; set; } = 100f;
