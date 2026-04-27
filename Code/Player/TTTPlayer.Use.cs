@@ -23,6 +23,30 @@ public sealed partial class TTTPlayer
 
 		if ( Input.Pressed( "toggle_disguise" ) )
 			RequestToggleDisguise();
+
+		if ( Input.Pressed( "attack1" ) )
+			TryFireWeapon();
+	}
+
+	private void TryFireWeapon()
+	{
+		var weapon = GameObject.GetComponent<Weapon>();
+		if ( !weapon.IsValid() ) return;
+
+		var ray = new Ray( WorldPosition + Vector3.Up * 64f, EyeForward() );
+		RequestFire( ray );
+	}
+
+	[Rpc.Host]
+	private void RequestFire( Ray eyeRay )
+	{
+		if ( !Networking.IsHost ) return;
+
+		var caller = TTTGameMode.Current?.AllPlayers().FirstOrDefault( p => p.Network.Owner == Rpc.Caller );
+		if ( !caller.IsValid() ) return;
+
+		var weapon = caller.GameObject.GetComponent<Weapon>();
+		weapon?.Fire( eyeRay );
 	}
 
 	private void TryUseTrace()

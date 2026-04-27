@@ -27,7 +27,11 @@ public sealed class Shop : Component
 		var shop = go.Components.Create<Shop>();
 		go.Components.Create<BodyArmor>();
 		go.Components.Create<Disguiser>();
-		// Future v1 items get added here as they're implemented (issue #8).
+		go.Components.Create<KnifeEquipment>();
+		go.Components.Create<SilencedPistolEquipment>();
+		go.Components.Create<C4Equipment>();
+		go.Components.Create<DecoyEquipment>();
+		go.Components.Create<HealthStationEquipment>();
 		go.NetworkSpawn( true, null );
 
 		return shop;
