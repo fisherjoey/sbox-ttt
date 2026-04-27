@@ -36,5 +36,14 @@ public sealed class PlayerRole : Component
 	/// </summary>
 	[Sync] public bool HasBodyArmor { get; set; }
 
+	/// <summary>
+	/// Disguiser — traitor item that suppresses your name on other players'
+	/// nameplates. Owned (always purchased) vs Active (toggled on/off). Vanilla
+	/// uses Q to toggle in-game. Both flags reset at round start.
+	/// </summary>
+	[Sync] public bool HasDisguiser { get; set; }
+
+	[Sync] public bool IsDisguised { get; set; }
+
 	public RoleTeam Team => Type.Team();
 }
