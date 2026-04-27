@@ -26,6 +26,26 @@ public sealed partial class TTTPlayer
 
 		if ( Input.Pressed( "attack1" ) )
 			TryFireWeapon();
+
+		if ( Input.Pressed( "attack2" ) )
+			TryDnaSample();
+	}
+
+	private void TryDnaSample()
+	{
+		if ( GameObject.GetComponent<DnaScanner>() is null ) return;
+
+		var ray = new Ray( WorldPosition + Vector3.Up * 64f, EyeForward() );
+		RequestDnaSample( ray );
+	}
+
+	[Rpc.Host]
+	private void RequestDnaSample( Ray eyeRay )
+	{
+		if ( !Networking.IsHost ) return;
+		var caller = TTTGameMode.Current?.AllPlayers().FirstOrDefault( p => p.Network.Owner == Rpc.Caller );
+		var scanner = caller?.GameObject?.GetComponent<DnaScanner>();
+		scanner?.TakeSample( eyeRay );
 	}
 
 	private void TryFireWeapon()

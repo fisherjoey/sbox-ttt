@@ -32,6 +32,7 @@ public sealed class Shop : Component
 		go.Components.Create<C4Equipment>();
 		go.Components.Create<DecoyEquipment>();
 		go.Components.Create<HealthStationEquipment>();
+		go.Components.Create<DnaScannerEquipment>();
 		go.NetworkSpawn( true, null );
 
 		return shop;

@@ -1,0 +1,86 @@
+@using Sandbox;
+@using Sandbox.UI;
+@using System.Linq;
+@inherits PanelComponent
+@namespace TTT.UI
+
+@{
+	var scanner = LocalScanner;
+	var hasSample = scanner.IsValid() && scanner.HasActiveSample;
+}
+
+@if ( hasSample )
+{
+	<root>
+		<div class="card">
+			<div class="label">DNA Sample</div>
+			<div class="distance">@DistanceText() m</div>
+			<div class="arrow" style="transform: rotate(@ArrowAngle()deg)">▲</div>
+			<div class="expires">@ExpiresInText()s</div>
+		</div>
+	</root>
+}
+
+@code
+{
+	static DnaScanner LocalScanner
+	{
+		get
+		{
+			if ( Connection.Local is null ) return null;
+			foreach ( var p in Game.ActiveScene.GetAllComponents<TTTPlayer>() )
+				if ( p.Network.Owner == Connection.Local )
+					return p.GameObject.GetComponent<DnaScanner>();
+			return null;
+		}
+	}
+
+	static TTTPlayer LocalPlayer
+	{
+		get
+		{
+			if ( Connection.Local is null ) return null;
+			return Game.ActiveScene?.GetAllComponents<TTTPlayer>()
+				.FirstOrDefault( p => p.Network.Owner == Connection.Local );
+		}
+	}
+
+	string DistanceText()
+	{
+		var scanner = LocalScanner;
+		var local = LocalPlayer;
+		var target = scanner?.CurrentSampleTarget;
+		if ( !target.IsValid() || !local.IsValid() ) return "—";
+		var meters = local.WorldPosition.Distance( target.WorldPosition ) / 39.37f; // su to m
+		return meters.ToString( "0" );
+	}
+
+	float ArrowAngle()
+	{
+		var scanner = LocalScanner;
+		var local = LocalPlayer;
+		var target = scanner?.CurrentSampleTarget;
+		if ( !target.IsValid() || !local.IsValid() ) return 0;
+
+		var toTarget = (target.WorldPosition - local.WorldPosition).WithZ( 0 ).Normal;
+		var forward = local.WorldRotation.Forward.WithZ( 0 ).Normal;
+		var angle = MathF.Atan2(
+			forward.Cross( toTarget ).z,
+			forward.Dot( toTarget ) ) * (180f / MathF.PI);
+		return angle;
+	}
+
+	string ExpiresInText()
+	{
+		var scanner = LocalScanner;
+		if ( !scanner.IsValid() ) return "0";
+		var remaining = MathF.Max( 0f, (float)scanner.SampleExpiresAt );
+		return remaining.ToString( "0" );
+	}
+
+	protected override int BuildHash() => System.HashCode.Combine(
+		LocalScanner?.HasActiveSample ?? false,
+		LocalScanner?.CurrentSampleTargetId,
+		(int)Time.Now    // refresh every frame for arrow rotation
+	);
+}
