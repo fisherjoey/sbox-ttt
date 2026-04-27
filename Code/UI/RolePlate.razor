@@ -1,0 +1,42 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits Panel
+@namespace TTT.UI
+
+@{
+	var gm = TTTGameMode.Current;
+	var local = LocalPlayer;
+}
+
+@if ( gm is not null && local is not null && gm.Phase == RoundPhase.Active )
+{
+	<root class="role-@RoleClass( local.Role.Type )">
+		<div class="title">@local.Role.Type</div>
+		<div class="credits">@local.Role.Credits credits</div>
+	</root>
+}
+
+@code
+{
+	static TTTPlayer LocalPlayer
+	{
+		get
+		{
+			if ( Connection.Local is null ) return null;
+			foreach ( var p in Game.ActiveScene.GetAllComponents<TTTPlayer>() )
+			{
+				if ( p.Network.Owner == Connection.Local ) return p;
+			}
+			return null;
+		}
+	}
+
+	static string RoleClass( RoleType type ) => type.ToString().ToLowerInvariant();
+
+	protected override int BuildHash()
+	{
+		var local = LocalPlayer;
+		if ( local is null ) return 0;
+		return HashCode.Combine( local.Role.Type, local.Role.Credits, TTTGameMode.Current?.Phase );
+	}
+}

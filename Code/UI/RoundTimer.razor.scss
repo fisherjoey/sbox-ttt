@@ -1,0 +1,29 @@
+RoundTimer
+{
+	position: absolute;
+	top: 24px;
+	left: 50%;
+	transform: translateX(-50%);
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	pointer-events: none;
+	color: white;
+	text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+	font-family: "Inter", sans-serif;
+
+	.phase
+	{
+		font-size: 14px;
+		opacity: 0.8;
+		text-transform: uppercase;
+		letter-spacing: 2px;
+	}
+
+	.time
+	{
+		font-size: 32px;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+}

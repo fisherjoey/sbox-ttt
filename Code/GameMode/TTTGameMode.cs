@@ -12,6 +12,7 @@ public sealed partial class TTTGameMode : Component, Component.INetworkListener
 	[Sync( SyncFlags.FromHost )] public RoundPhase Phase { get; set; } = RoundPhase.WaitingForPlayers;
 	[Sync( SyncFlags.FromHost )] public TimeUntil PhaseEndsAt { get; set; }
 	[Sync( SyncFlags.FromHost )] public int RoundNumber { get; set; }
+	[Sync( SyncFlags.FromHost )] public RoleTeam LastWinner { get; set; } = RoleTeam.Innocents;
 
 	[Property] public int MinPlayers { get; set; } = 2;
 	[Property] public float PreparingDuration { get; set; } = 15f;

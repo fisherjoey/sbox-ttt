@@ -1,0 +1,39 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits Panel
+@namespace TTT.UI
+
+@if ( TTTGameMode.Current is { } gm )
+{
+	<root>
+		<div class="phase">@PhaseLabel( gm.Phase )</div>
+		<div class="time">@TimeLabel( gm )</div>
+	</root>
+}
+
+@code
+{
+	protected override int BuildHash()
+	{
+		var gm = TTTGameMode.Current;
+		if ( gm is null ) return 0;
+		return HashCode.Combine( gm.Phase, (int)(float)gm.PhaseEndsAt );
+	}
+
+	static string PhaseLabel( RoundPhase phase ) => phase switch
+	{
+		RoundPhase.WaitingForPlayers => "Waiting for players",
+		RoundPhase.Preparing         => "Preparing",
+		RoundPhase.Active            => "In progress",
+		RoundPhase.PostRound         => "Round over",
+		_ => "",
+	};
+
+	static string TimeLabel( TTTGameMode gm )
+	{
+		var seconds = MathF.Max( 0f, gm.PhaseEndsAt );
+		var m = (int)(seconds / 60f);
+		var s = (int)(seconds % 60f);
+		return $"{m}:{s:00}";
+	}
+}

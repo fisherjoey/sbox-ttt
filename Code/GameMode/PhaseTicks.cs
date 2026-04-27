@@ -90,7 +90,8 @@ public sealed partial class TTTGameMode
 
 	private void EndRound( RoleTeam winner )
 	{
-		// TODO: store winner for the post-round UI to read.
+		LastWinner = winner;
+		RoleVisibility.Clear();
 		EnterPhase( RoundPhase.PostRound, PostRoundDuration );
 	}
 
