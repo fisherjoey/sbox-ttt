@@ -82,6 +82,13 @@ public sealed class GameConfig : Component
 	[Property, Sync( SyncFlags.FromHost ), Range( 0, 100, 5 ), Group( "Karma" )]
 	public int CleanRoundBonus { get; set; } = 30;
 
+	/// <summary>
+	/// Auto-kick players whose karma drops at or below <see cref="KickThreshold"/>
+	/// at round end. <c>ttt_karma_low_autokick</c> in vanilla, default on.
+	/// </summary>
+	[Property, Sync( SyncFlags.FromHost ), Group( "Karma" )]
+	public bool KarmaAutoKick { get; set; } = true;
+
 	// --- Economy ---
 	[Property, Sync( SyncFlags.FromHost ), Range( 0, 10, 1 ), Group( "Economy" )]
 	public int StartingCreditsTraitor { get; set; } = 2;
