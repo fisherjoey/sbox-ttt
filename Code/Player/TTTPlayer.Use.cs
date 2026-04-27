@@ -20,6 +20,9 @@ public sealed partial class TTTPlayer
 
 		if ( Input.Pressed( "use" ) )
 			TryUseTrace();
+
+		if ( Input.Pressed( "toggle_disguise" ) )
+			RequestToggleDisguise();
 	}
 
 	private void TryUseTrace()
@@ -57,5 +60,15 @@ public sealed partial class TTTPlayer
 		// that initiated the RPC; resolve to their TTTPlayer.
 		var identifier = TTTGameMode.Current?.AllPlayers().FirstOrDefault( p => p.Network.Owner == Rpc.Caller );
 		corpse.Identify( identifier );
+	}
+
+	[Rpc.Host]
+	private void RequestToggleDisguise()
+	{
+		if ( !Networking.IsHost ) return;
+
+		var player = TTTGameMode.Current?.AllPlayers().FirstOrDefault( p => p.Network.Owner == Rpc.Caller );
+		if ( player.IsValid() && player.Role.HasDisguiser )
+			Disguiser.Toggle( player );
 	}
 }
