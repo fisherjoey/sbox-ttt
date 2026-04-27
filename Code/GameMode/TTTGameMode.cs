@@ -90,6 +90,18 @@ public sealed partial class TTTGameMode : Component, Component.INetworkListener
 		if ( go.GetComponent<TTTVoice>() is null )
 			go.Components.Create<TTTVoice>();
 
+		// Spawn a child GameObject for the nameplate above the player's head.
+		// In a finished player prefab this would be a designed anchor; here we
+		// create it programmatically so the v1 spine works without prefab work.
+		if ( go.GetComponentInChildren<UI.Nameplate>() is null )
+		{
+			var anchor = new GameObject( true, "Nameplate" );
+			anchor.SetParent( go );
+			anchor.LocalPosition = new Vector3( 0, 0, 80 );    // ~head height; tuneable
+			var plate = anchor.Components.Create<UI.Nameplate>();
+			plate.Player = player;
+		}
+
 		player.Respawn();
 	}
 

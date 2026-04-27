@@ -1,0 +1,73 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+@namespace TTT.UI
+
+@{
+	var visible = ShouldShow();
+}
+
+@if ( visible )
+{
+	<root class="role-@RoleClass()">
+		@if ( BadgeText() is { } badge )
+		{
+			<div class="badge">@badge</div>
+		}
+		<label class="name">@DisplayName()</label>
+	</root>
+}
+
+@code
+{
+	[Property] public TTTPlayer Player { get; set; }
+
+	bool ShouldShow()
+	{
+		if ( !Player.IsValid() ) return false;
+		if ( Player.IsLocalPlayer ) return false;            // own nameplate not shown
+		if ( Player.IsSpectator ) return false;
+		if ( !Player.IsAlive ) return false;                 // hide nameplate of dead players
+
+		// Disguiser: while active, the player's name is hidden from everyone.
+		// Detectives still know the role from RoleVisibility, but the name+role
+		// nameplate just doesn't render — vanilla TTT behaviour.
+		if ( Player.Role.IsDisguised ) return false;
+
+		return true;
+	}
+
+	RoleType? KnownRole => RoleVisibility.GetKnownRole( Player.GameObject.Id );
+
+	string RoleClass()
+	{
+		return KnownRole switch
+		{
+			RoleType.Detective => "detective",
+			RoleType.Traitor   => "traitor",
+			RoleType.Innocent  => "innocent",
+			_                  => "unknown",
+		};
+	}
+
+	string BadgeText()
+	{
+		return KnownRole switch
+		{
+			RoleType.Detective => "DET",
+			RoleType.Traitor   => "T",
+			_                  => null,    // innocents and unknown get no badge
+		};
+	}
+
+	string DisplayName() => Player.Network.Owner?.DisplayName ?? "Unknown";
+
+	protected override int BuildHash() => System.HashCode.Combine(
+		Player.IsValid(),
+		Player?.IsAlive ?? false,
+		Player?.IsSpectator ?? false,
+		Player?.Role?.IsDisguised ?? false,
+		KnownRole,
+		DisplayName()
+	);
+}

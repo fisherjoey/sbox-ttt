@@ -1,0 +1,49 @@
+Nameplate
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	white-space: nowrap;
+	pointer-events: none;
+	font-family: "Inter", sans-serif;
+	font-weight: 600;
+
+	.badge
+	{
+		padding: 2px 8px;
+		margin-right: 6px;
+		border-radius: 4px;
+		font-size: 18px;
+		font-weight: 700;
+		letter-spacing: 1px;
+		color: white;
+		text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+	}
+
+	.name
+	{
+		font-size: 22px;
+		color: white;
+		text-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+	}
+
+	&.role-detective
+	{
+		.badge { background-color: rgba(76, 143, 224, 0.85); }
+		.name  { color: #4c8fe0; }
+	}
+
+	&.role-traitor
+	{
+		.badge { background-color: rgba(224, 76, 76, 0.85); }
+		.name  { color: #e04c4c; }
+	}
+
+	&.role-innocent .name { color: #4ce04c; }
+
+	&.role-unknown .name  { color: white; }
+}

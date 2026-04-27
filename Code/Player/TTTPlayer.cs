@@ -23,4 +23,6 @@ public sealed partial class TTTPlayer : Component, Component.IDamageable
 	public bool IsSpectator => Status == PlayerStatus.Spectator;
 
 	public Connection Owner => Network.Owner;
+
+	public bool IsLocalPlayer => Connection.Local is not null && Network.Owner == Connection.Local;
 }
