@@ -10,7 +10,7 @@ public sealed partial class TTTPlayer
 		if ( !Networking.IsHost ) return;
 
 		Status = PlayerStatus.Alive;
-		Health = MaxHealth;
+		Health = MaxHealth;   // accessor reads from GameConfig.Current
 		MoveToSpawnpoint();
 	}
 

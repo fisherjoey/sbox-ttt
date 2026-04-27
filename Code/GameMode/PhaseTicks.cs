@@ -8,9 +8,9 @@ public sealed partial class TTTGameMode
 {
 	private void TickWaiting()
 	{
-		if ( ConnectedNonSpectators() < MinPlayers ) return;
+		if ( ConnectedNonSpectators() < Config.MinPlayers ) return;
 
-		var prep = RoundNumber == 0 ? FirstPreparingDuration : PreparingDuration;
+		var prep = RoundNumber == 0 ? Config.FirstPrepDuration : Config.PrepDuration;
 		EnterPhase( RoundPhase.Preparing, prep );
 
 		foreach ( var p in AllPlayers() )
@@ -23,7 +23,7 @@ public sealed partial class TTTGameMode
 
 	private void TickPreparing()
 	{
-		if ( ConnectedNonSpectators() < MinPlayers )
+		if ( ConnectedNonSpectators() < Config.MinPlayers )
 		{
 			EnterPhase( RoundPhase.WaitingForPlayers, 0f );
 			return;
@@ -47,16 +47,16 @@ public sealed partial class TTTGameMode
 				continue;
 			}
 
-			p.Health = TTTPlayer.MaxHealth;
+			p.Health = Config.BaseHealth;
 			p.Status = PlayerStatus.Alive;
 			_alivePlayers.Add( p );
 		}
 
-		RoleAssignment.Assign( _alivePlayers );
+		RoleAssignment.Assign( _alivePlayers, Config );
 		RoleVisibility.RevealToClients( _alivePlayers );
 
 		RoundNumber++;
-		EnterPhase( RoundPhase.Active, ActiveDuration );
+		EnterPhase( RoundPhase.Active, Config.ActiveDuration );
 	}
 
 	private void TickActive()
@@ -91,7 +91,7 @@ public sealed partial class TTTGameMode
 	{
 		LastWinner = winner;
 		RoleVisibility.Clear();
-		EnterPhase( RoundPhase.PostRound, PostRoundDuration );
+		EnterPhase( RoundPhase.PostRound, Config.PostRoundDuration );
 	}
 
 	/// <summary>
@@ -107,16 +107,16 @@ public sealed partial class TTTGameMode
 		_alivePlayers.Remove( victim );
 		_spectators.Add( victim );
 
-		if ( HasteMode )
-			PhaseEndsAt = (float)PhaseEndsAt + HasteSecondsPerDeath;
+		if ( Config.HasteMode )
+			PhaseEndsAt = (float)PhaseEndsAt + Config.HasteSecondsPerDeath;
 	}
 
 	private void TickPostRound()
 	{
 		if ( PhaseEndsAt > 0 ) return;
 
-		EnterPhase( ConnectedNonSpectators() >= MinPlayers
+		EnterPhase( ConnectedNonSpectators() >= Config.MinPlayers
 			? RoundPhase.Preparing
-			: RoundPhase.WaitingForPlayers, PreparingDuration );
+			: RoundPhase.WaitingForPlayers, Config.PrepDuration );
 	}
 }

@@ -13,9 +13,9 @@ public enum PlayerStatus
 public sealed partial class TTTPlayer : Component
 {
 	[Sync] public PlayerStatus Status { get; set; } = PlayerStatus.Alive;
-	[Sync] public float Health { get; set; } = MaxHealth;
+	[Sync] public float Health { get; set; } = 100f;
 
-	public const float MaxHealth = 100f;
+	public float MaxHealth => GameConfig.Current?.BaseHealth ?? 100f;
 
 	public PlayerRole Role => GameObject.Components.GetOrCreate<PlayerRole>();
 
