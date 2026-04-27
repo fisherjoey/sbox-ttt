@@ -84,6 +84,12 @@ public sealed partial class TTTGameMode : Component, Component.INetworkListener
 		go.NetworkSpawn( channel );
 
 		var player = go.GetComponent<TTTPlayer>() ?? go.Components.Create<TTTPlayer>();
+
+		// Add a TTTVoice component for life-bucket-based voice routing if the
+		// prefab didn't include one (issue #6).
+		if ( go.GetComponent<TTTVoice>() is null )
+			go.Components.Create<TTTVoice>();
+
 		player.Respawn();
 	}
 
