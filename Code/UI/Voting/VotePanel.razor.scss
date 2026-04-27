@@ -1,0 +1,73 @@
+VotePanel
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, 0.65);
+	pointer-events: all;
+	font-family: "Inter", sans-serif;
+	color: white;
+
+	.panel
+	{
+		width: 480px;
+		flex-direction: column;
+		gap: 16px;
+		padding: 28px;
+		background-color: rgba(20, 24, 32, 0.97);
+		border-radius: 8px;
+
+		h1 { font-size: 24px; font-weight: 700; }
+
+		.subject
+		{
+			font-size: 14px;
+			opacity: 0.8;
+			padding: 8px 12px;
+			background-color: rgba(255, 255, 255, 0.05);
+			border-radius: 4px;
+		}
+
+		.counts
+		{
+			flex-direction: row;
+			justify-content: space-between;
+			gap: 8px;
+
+			.yes { color: #4ce04c; font-weight: 600; }
+			.no  { color: #e04c4c; font-weight: 600; }
+			.time { color: rgba(255, 255, 255, 0.5); }
+		}
+
+		.buttons
+		{
+			flex-direction: row;
+			gap: 12px;
+
+			button
+			{
+				flex-grow: 1;
+				padding: 14px 0;
+				font-size: 18px;
+				font-weight: 700;
+				border-radius: 4px;
+			}
+
+			.yes-btn { background-color: rgba(76, 224, 76, 0.55); }
+			.no-btn  { background-color: rgba(224, 76, 76, 0.55); }
+
+			button:hover { opacity: 0.85; }
+		}
+
+		.note
+		{
+			font-size: 11px;
+			opacity: 0.5;
+			text-align: center;
+		}
+	}
+}

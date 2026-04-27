@@ -109,6 +109,7 @@ public sealed partial class TTTGameMode
 		LastRoundDuration = (float)RoundStartedAt;
 
 		ApplyRoundEndKarma();
+		VotingSystem.Current?.OnRoundEnded();
 
 		RoleVisibility.Clear();
 		EnterPhase( RoundPhase.PostRound, Config.PostRoundDuration );

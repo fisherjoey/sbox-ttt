@@ -1,0 +1,65 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+@namespace TTT.UI
+
+@{
+	var v = VotingSystem.Current;
+	var visible = v.IsValid() && v.Phase == VotePhase.Motion;
+}
+
+@if ( visible )
+{
+	<root>
+		<div class="banner">
+			<div class="title">@v.Subject</div>
+			<div class="meta">
+				<span class="seconds">@v.SecondsCount / @v.Quorum seconds</span>
+				<span class="time">@SecondsLeft()s left</span>
+			</div>
+			<button class="second-btn" onclick=@OnSecond disabled=@CantSecond()>F11 to second</button>
+		</div>
+	</root>
+}
+
+@code
+{
+	protected override void OnUpdate()
+	{
+		if ( Input.Pressed( "motion_second" ) ) OnSecond();
+	}
+
+	void OnSecond() => VotingSystem.Current?.Second();
+
+	bool CantSecond()
+	{
+		var v = VotingSystem.Current;
+		var local = LocalPlayer;
+		if ( !v.IsValid() || !local.IsValid() ) return true;
+		return v.MotionerId == local.GameObject.Id;
+	}
+
+	static TTTPlayer LocalPlayer
+	{
+		get
+		{
+			if ( Connection.Local is null ) return null;
+			foreach ( var p in Game.ActiveScene.GetAllComponents<TTTPlayer>() )
+				if ( p.Network.Owner == Connection.Local ) return p;
+			return null;
+		}
+	}
+
+	string SecondsLeft()
+	{
+		var v = VotingSystem.Current;
+		if ( !v.IsValid() ) return "0";
+		return MathF.Max( 0f, (float)v.PhaseEndsAt ).ToString( "0" );
+	}
+
+	protected override int BuildHash() => System.HashCode.Combine(
+		VotingSystem.Current?.Phase,
+		VotingSystem.Current?.SecondsCount ?? 0,
+		(int)Time.Now
+	);
+}

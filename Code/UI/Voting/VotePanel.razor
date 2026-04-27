@@ -1,0 +1,72 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+@namespace TTT.UI
+
+@{
+	var v = VotingSystem.Current;
+	var canVoteNow = ShouldShow();
+}
+
+@if ( canVoteNow )
+{
+	<root>
+		<div class="panel">
+			<h1>Vote</h1>
+			<div class="subject">@v.Subject</div>
+
+			<div class="counts">
+				<div class="yes">Yes: @v.YesCount</div>
+				<div class="no">No: @v.NoCount</div>
+				<div class="time">@SecondsLeft()s</div>
+			</div>
+
+			<div class="buttons">
+				<button class="yes-btn" onclick=@VoteYes>YES</button>
+				<button class="no-btn"  onclick=@VoteNo>NO</button>
+			</div>
+
+			<div class="note">
+				Vote passes at @PassPct()% yes. Voting only counts during prep / round end.
+			</div>
+		</div>
+	</root>
+}
+
+@code
+{
+	bool ShouldShow()
+	{
+		var v = VotingSystem.Current;
+		if ( !v.IsValid() ) return false;
+		if ( v.Phase != VotePhase.Vote ) return false;
+
+		// Only show during non-Active phases — Active votes queue but the
+		// blocking panel only opens during Prep / PostRound / WaitingForPlayers.
+		var phase = TTTGameMode.Current?.Phase ?? RoundPhase.WaitingForPlayers;
+		return phase != RoundPhase.Active;
+	}
+
+	void VoteYes() => VotingSystem.Current?.CastVote( true );
+	void VoteNo()  => VotingSystem.Current?.CastVote( false );
+
+	string SecondsLeft()
+	{
+		var v = VotingSystem.Current;
+		if ( !v.IsValid() ) return "0";
+		return MathF.Max( 0f, (float)v.PhaseEndsAt ).ToString( "0" );
+	}
+
+	string PassPct()
+	{
+		var pct = (VotingSystem.Current?.VotePassThreshold ?? 0.6f) * 100;
+		return pct.ToString( "0" );
+	}
+
+	protected override int BuildHash() => System.HashCode.Combine(
+		VotingSystem.Current?.Phase,
+		VotingSystem.Current?.YesCount ?? 0,
+		VotingSystem.Current?.NoCount ?? 0,
+		(int)Time.Now
+	);
+}
