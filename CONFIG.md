@@ -37,6 +37,7 @@ Six categories. Knob count is intentionally bounded — Among Us exposes ~25, th
 - `KarmaMode` (Strict / Lenient / Off)
 - `StartingKarma` (1000)
 - `KickThreshold` (450)
+- `KarmaAutoKick` (true) — `ttt_karma_low_autokick`
 - `RecoveryPerRound` (5)
 - `CleanRoundBonus` (30)
 
